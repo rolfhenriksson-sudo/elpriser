@@ -22,6 +22,7 @@ th{text-align:right;color:var(--muted);font-weight:600;font-size:.85rem}th:first
 td{text-align:right;white-space:nowrap}td:first-child{white-space:normal}
 .lo{color:var(--g);font-weight:600}.hi{color:var(--r);font-weight:600}
 .note{color:var(--muted);font-size:.9rem;margin:2px 2px 14px}
+@media(max-width:480px){table{font-size:.86rem}th,td{padding:6px 3px}main{padding:10px}.card{padding:12px 10px 8px}}
 footer{text-align:center;color:var(--muted);font-size:.88rem;padding:20px 14px 40px}
 .empty{text-align:center;color:var(--muted);padding:30px}
 </style></head><body>
@@ -41,22 +42,22 @@ function dayName(iso){const d=new Date(iso+"T12:00:00");const w=DAYS[d.getDay()]
 function hourLabels(n){const o=[];for(let i=0;i<n;i++){const h=n===25&&i>2?i-1:(n===23&&i>=2?i+1:i);o.push(String(h).padStart(2,"0"));}return o;}
 function kr(kwh,ore){return (kwh*ore/100).toFixed(2).replace(".",",").replace("-0,00","0,00")+" kr";}
 function chart(v){
-  const W=700,H=270,pL=56,pR=8,pT=18,pB=44,n=v.length,lo=Math.min(...v),hi=Math.max(...v);
+  const W=480,H=290,pL=52,pR=6,pT=16,pB=52,n=v.length,lo=Math.min(...v),hi=Math.max(...v);
   const top=Math.max(10,Math.ceil(hi/50)*50),bot=Math.min(0,lo);
   const y=p=>pT+(H-pT-pB)*(1-(p-bot)/(top-bot)),slot=(W-pL-pR)/n,L=hourLabels(n);
   const col=p=>p<=lo+(hi-lo)/3?"#2e9e44":p>=hi-(hi-lo)/3?"#d64545":"#f0a830";
   let s='<svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="Timpriser">';
-  [0,top/4,top/2,3*top/4,top].forEach(t=>{s+='<line x1="'+pL+'" x2="'+(W-pR)+'" y1="'+y(t)+'" y2="'+y(t)+'" stroke="#e3e6ea"/><text x="'+(pL-6)+'" y="'+(y(t)+4)+'" text-anchor="end" font-size="12" fill="#8b949e">'+Math.round(t)+'</text>';});
+  [0,top/4,top/2,3*top/4,top].forEach(t=>{s+='<line x1="'+pL+'" x2="'+(W-pR)+'" y1="'+y(t)+'" y2="'+y(t)+'" stroke="#e3e6ea"/><text x="'+(pL-6)+'" y="'+(y(t)+4)+'" text-anchor="end" font-size="15" fill="#6e7781">'+Math.round(t)+'</text>';});
   v.forEach((p,i)=>{const x=pL+i*slot+slot*.12,y0=y(0),y1=y(p);
     s+='<rect x="'+x+'" width="'+slot*.76+'" y="'+Math.min(y0,y1)+'" height="'+Math.max(1,Math.abs(y0-y1))+'" rx="2" fill="'+col(p)+'"><title>Kl '+L[i]+': '+p+' öre/kWh</title></rect>';
-    if(i%2===0)s+='<text x="'+(x+slot*.38)+'" y="'+(H-26)+'" text-anchor="middle" font-size="12" fill="#8b949e">'+L[i]+'</text>';});
-  s+='<text x="'+(pL+W-pR)/2+'" y="'+(H-6)+'" text-anchor="middle" font-size="12" fill="#656d76">Klockslag</text>';
-  const cy=(pT+H-pB)/2;s+='<text x="14" y="'+cy+'" text-anchor="middle" font-size="12" fill="#656d76" transform="rotate(-90 14 '+cy+')">öre/kWh</text></svg>';
+    if(i%2===0)s+='<text x="'+(x+slot*.38)+'" y="'+(H-30)+'" text-anchor="middle" font-size="14" fill="#6e7781">'+L[i]+'</text>';});
+  s+='<text x="'+(pL+W-pR)/2+'" y="'+(H-6)+'" text-anchor="middle" font-size="15" fill="#444c56">Klockslag</text>';
+  const cy=(pT+H-pB)/2;s+='<text x="13" y="'+cy+'" text-anchor="middle" font-size="15" fill="#444c56" transform="rotate(-90 14 '+cy+')">öre/kWh</text></svg>';
   return s;}
 function card(d,v){
   const L=hourLabels(v.length),lo=Math.min(...v),hi=Math.max(...v),avg=Math.round(v.reduce((a,b)=>a+b,0)/v.length);
   const loH=L[v.indexOf(lo)],hiH=L[v.indexOf(hi)];
-  let t='<table><tr><th>Aktivitet</th><th>Förbrukning</th><th>Billigaste timmen (kl '+loH+')</th><th>Dyraste timmen (kl '+hiH+')</th></tr>';
+  let t='<table><tr><th>Aktivitet</th><th>Förbrukning</th><th>Billigaste timmen<br>kl '+loH+'</th><th>Dyraste timmen<br>kl '+hiH+'</th></tr>';
   ACT.forEach(a=>{t+='<tr><td>'+a[0]+'</td><td>'+a[2]+'</td><td class="lo">'+kr(a[1],lo)+'</td><td class="hi">'+kr(a[1],hi)+'</td></tr>';});
   t+='</table>';
   return '<section class="card" id="d'+d+'"><h2>'+dayName(d)+'</h2>'+chart(v)+'<p class="sum">Snitt '+avg+' öre/kWh. Billigast kl '+loH+' ('+lo+' öre), dyrast kl '+hiH+' ('+hi+' öre).</p>'+t+'</section>';}
