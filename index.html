@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="sv"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Elpriser SE3 per timme</title>
+<style>
+:root{--bg:#f6f7f9;--card:#fff;--ink:#1f2328;--muted:#656d76;--line:#e3e6ea;--g:#2e9e44;--y:#f0a830;--r:#d64545}
+*{box-sizing:border-box}body{margin:0;font:17px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--ink)}
+header{background:linear-gradient(135deg,#1d4f7a,#2e86c1);color:#fff;padding:26px 18px 20px}
+header h1{margin:0 0 6px;font-size:1.6rem}header p{margin:0;opacity:.92;font-size:.98rem}
+main{max-width:760px;margin:0 auto;padding:14px}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:.92rem;color:var(--muted);margin:4px 2px 12px}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+.card{background:var(--card);border-radius:14px;padding:14px 14px 10px;margin:0 0 14px;box-shadow:0 1px 4px rgba(20,30,40,.1)}
+.card h2{margin:0 0 6px;font-size:1.2rem}
+.sum{margin:6px 0 10px;font-size:.98rem}
+svg{display:block;width:100%;height:auto}
+svg text{font-family:inherit}
+table{width:100%;border-collapse:collapse;font-size:.93rem}
+th,td{padding:7px 6px;border-bottom:1px solid var(--line);vertical-align:top}
+th{text-align:right;color:var(--muted);font-weight:600;font-size:.85rem}th:first-child,td:first-child{text-align:left}
+td{text-align:right;white-space:nowrap}td:first-child{white-space:normal}
+.lo{color:var(--g);font-weight:600}.hi{color:var(--r);font-weight:600}
+.note{color:var(--muted);font-size:.9rem;margin:2px 2px 14px}
+footer{text-align:center;color:var(--muted);font-size:.88rem;padding:20px 14px 40px}
+.empty{text-align:center;color:var(--muted);padding:30px}
+</style></head><body>
+<header><h1>Elpriser SE3 per timme</h1>
+<p>Timpriser i öre/kWh för varje dag, senaste dagen överst, med ungefärlig kostnad för vanliga sysslor.</p></header>
+<main>
+<p class="note">Spotpris exkl. moms, energiskatt och nätavgift. Förbrukningen är ungefärlig.</p>
+<div class="legend"><span><i style="background:var(--g)"></i>Billigt</span><span><i style="background:var(--y)"></i>Mellan</span><span><i style="background:var(--r)"></i>Dyrt</span></div>
+<div id="days"><p class="empty">Laddar priser…</p></div>
+</main>
+<footer id="foot">Källa: elprisetjustnu.se</footer>
+<script>
+const DAYS=["söndag","måndag","tisdag","onsdag","torsdag","fredag","lördag"];
+const MONTHS=["januari","februari","mars","april","maj","juni","juli","augusti","september","oktober","november","december"];
+const ACT=[["Tvätt 60°",1.0,"1,0 kWh"],["Torktumlare",2.5,"2,5 kWh"],["Dammsugning 30 min",0.4,"0,4 kWh"],["Ugn 1 tim",1.5,"1,5 kWh"],["Fläkt 1 tim",0.1,"0,1 kWh"],["Dusch 10 min (varmvatten, elberedare)",2.0,"2,0 kWh"],["Bastu (uppvärmning + 1 tim bad)",8.0,"8 kWh"]];
+function dayName(iso){const d=new Date(iso+"T12:00:00");const w=DAYS[d.getDay()];return w[0].toUpperCase()+w.slice(1)+" "+d.getDate()+" "+MONTHS[d.getMonth()]+" "+d.getFullYear();}
+function hourLabels(n){const o=[];for(let i=0;i<n;i++){const h=n===25&&i>2?i-1:(n===23&&i>=2?i+1:i);o.push(String(h).padStart(2,"0"));}return o;}
+function kr(kwh,ore){return (kwh*ore/100).toFixed(2).replace(".",",").replace("-0,00","0,00")+" kr";}
+function chart(v){
+  const W=700,H=270,pL=56,pR=8,pT=18,pB=44,n=v.length,lo=Math.min(...v),hi=Math.max(...v);
+  const top=Math.max(10,Math.ceil(hi/50)*50),bot=Math.min(0,lo);
+  const y=p=>pT+(H-pT-pB)*(1-(p-bot)/(top-bot)),slot=(W-pL-pR)/n,L=hourLabels(n);
+  const col=p=>p<=lo+(hi-lo)/3?"#2e9e44":p>=hi-(hi-lo)/3?"#d64545":"#f0a830";
+  let s='<svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="Timpriser">';
+  [0,top/4,top/2,3*top/4,top].forEach(t=>{s+='<line x1="'+pL+'" x2="'+(W-pR)+'" y1="'+y(t)+'" y2="'+y(t)+'" stroke="#e3e6ea"/><text x="'+(pL-6)+'" y="'+(y(t)+4)+'" text-anchor="end" font-size="12" fill="#8b949e">'+Math.round(t)+'</text>';});
+  v.forEach((p,i)=>{const x=pL+i*slot+slot*.12,y0=y(0),y1=y(p);
+    s+='<rect x="'+x+'" width="'+slot*.76+'" y="'+Math.min(y0,y1)+'" height="'+Math.max(1,Math.abs(y0-y1))+'" rx="2" fill="'+col(p)+'"><title>Kl '+L[i]+': '+p+' öre/kWh</title></rect>';
+    if(i%2===0)s+='<text x="'+(x+slot*.38)+'" y="'+(H-26)+'" text-anchor="middle" font-size="12" fill="#8b949e">'+L[i]+'</text>';});
+  s+='<text x="'+(pL+W-pR)/2+'" y="'+(H-6)+'" text-anchor="middle" font-size="12" fill="#656d76">Klockslag</text>';
+  const cy=(pT+H-pB)/2;s+='<text x="14" y="'+cy+'" text-anchor="middle" font-size="12" fill="#656d76" transform="rotate(-90 14 '+cy+')">öre/kWh</text></svg>';
+  return s;}
+function card(d,v){
+  const L=hourLabels(v.length),lo=Math.min(...v),hi=Math.max(...v),avg=Math.round(v.reduce((a,b)=>a+b,0)/v.length);
+  const loH=L[v.indexOf(lo)],hiH=L[v.indexOf(hi)];
+  let t='<table><tr><th>Aktivitet</th><th>Förbrukning</th><th>Billigaste timmen (kl '+loH+')</th><th>Dyraste timmen (kl '+hiH+')</th></tr>';
+  ACT.forEach(a=>{t+='<tr><td>'+a[0]+'</td><td>'+a[2]+'</td><td class="lo">'+kr(a[1],lo)+'</td><td class="hi">'+kr(a[1],hi)+'</td></tr>';});
+  t+='</table>';
+  return '<section class="card" id="d'+d+'"><h2>'+dayName(d)+'</h2>'+chart(v)+'<p class="sum">Snitt '+avg+' öre/kWh. Billigast kl '+loH+' ('+lo+' öre), dyrast kl '+hiH+' ('+hi+' öre).</p>'+t+'</section>';}
+fetch('data.json?'+Date.now()).then(r=>r.json()).then(D=>{
+  const days=Object.keys(D).sort().reverse();
+  document.getElementById('days').innerHTML=days.length?days.map(d=>card(d,D[d])).join(''):'<p class="empty">Inga priser ännu.</p>';
+  if(days.length)document.getElementById('foot').textContent='Källa: elprisetjustnu.se · Senaste dag: '+days[0]+' · '+days.length+' dagar sparade';
+}).catch(()=>{document.getElementById('days').innerHTML='<p class="empty">Kunde inte läsa priserna.</p>';});
+</script>
+</body></html>
