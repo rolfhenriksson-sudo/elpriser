@@ -37,7 +37,7 @@ footer{text-align:center;color:var(--muted);font-size:.88rem;padding:20px 14px 4
 <script>
 const DAYS=["söndag","måndag","tisdag","onsdag","torsdag","fredag","lördag"];
 const MONTHS=["januari","februari","mars","april","maj","juni","juli","augusti","september","oktober","november","december"];
-const ACT=[["Tvätt 60°",1.0,"1,0 kWh"],["Torktumlare",2.5,"2,5 kWh"],["Dammsugning 30 min",0.4,"0,4 kWh"],["Ugn 1 tim",1.5,"1,5 kWh"],["Fläkt 1 tim",0.1,"0,1 kWh"],["Dusch 10 min (varmvatten, elberedare)",2.0,"2,0 kWh"],["Bastu (uppvärmning + 1 tim bad)",8.0,"8 kWh"]];
+const ACT=[["Tvätt 60°",1.0,"1,0 kWh"],["Torktumlare",2.5,"2,5 kWh"],["Dammsugning 30 min",0.4,"0,4 kWh"],["Ugn 1 tim",1.5,"1,5 kWh"],["Fläkt 1 tim",0.1,"0,1 kWh"],["Diskmaskin, ekoprogram (uppskattat)",0.8,"0,8 kWh"],["Dusch 10 min (varmvatten, elberedare)",2.0,"2,0 kWh"],["Bastu (uppvärmning + 1 tim bad)",8.0,"8 kWh"]];
 function dayName(iso){const d=new Date(iso+"T12:00:00");const w=DAYS[d.getDay()];return w[0].toUpperCase()+w.slice(1)+" "+d.getDate()+" "+MONTHS[d.getMonth()]+" "+d.getFullYear();}
 function hourLabels(n){const o=[];for(let i=0;i<n;i++){const h=n===25&&i>2?i-1:(n===23&&i>=2?i+1:i);o.push(String(h).padStart(2,"0"));}return o;}
 function kr(kwh,ore){return (kwh*ore/100).toFixed(2).replace(".",",").replace("-0,00","0,00")+" kr";}
